@@ -36,8 +36,9 @@ export const OPTIONS = GET;
 
 export const POST = async (req: Request) => {
   try {
+    
     const body: ActionPostRequest = await req.json();
-
+    console.log('Request Body:', body);
     let account: PublicKey;
     try {
       account = new PublicKey(body.account);
@@ -91,17 +92,11 @@ export const POST = async (req: Request) => {
         // no additional signers are required for this transaction
         signers: [mintKeypair],
       });
-
+      console.log('Response Payload:', payload);
       return Response.json(payload, {
         headers: ACTIONS_CORS_HEADERS,
       });
   } catch (err) {
     console.log(err);
-    let message = "An unknown error occurred";
-    if (typeof err == "string") message = err;
-    return new Response(message, {
-      status: 400,
-      headers: ACTIONS_CORS_HEADERS,
-    });
   }
 };
