@@ -21,7 +21,7 @@ import {
 
 export const GET = (req: Request) => {
   const payload: ActionGetResponse = {
-    icon: new URL("/shit_coin_icon.png", new URL(req.url).origin).toString(),
+    icon: "https://github.com/Andlyn666/solana_coin/blob/main/shit_coin_icon.png?raw=true",
     label: "Mint PooPoo",
     description: "Mint PooPoo to Anyone",
     title: "PooPoo",
@@ -36,7 +36,7 @@ export const OPTIONS = GET;
 
 export const POST = async (req: Request) => {
   try {
-    console.log(req.text())
+    console.log('Request req :', req)
     const body: ActionPostRequest = await req.json();
     console.log('Request Body:', body);
     let account: PublicKey;
