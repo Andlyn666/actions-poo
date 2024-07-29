@@ -36,7 +36,7 @@ export const OPTIONS = GET;
 
 export const POST = async (req: Request) => {
   try {
-    
+    console.log(req.text())
     const body: ActionPostRequest = await req.json();
     console.log('Request Body:', body);
     let account: PublicKey;
