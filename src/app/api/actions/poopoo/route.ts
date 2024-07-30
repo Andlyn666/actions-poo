@@ -15,8 +15,10 @@ import {
 } from "@solana/web3.js";
 
 import {
+  createAssociatedTokenAccountInstruction,
   createMintToInstruction,
   TOKEN_2022_PROGRAM_ID,
+  getAssociatedTokenAddress,
 } from "@solana/spl-token";
 
 export const GET = (req: Request) => {
@@ -36,9 +38,9 @@ export const OPTIONS = GET;
 
 export const POST = async (req: Request) => {
   try {
-    console.log('Request req :', req)
+    console.log(1)
     const body: ActionPostRequest = await req.json();
-    console.log('Request Body:', body);
+    console.log(2)
     let account: PublicKey;
     try {
       account = new PublicKey(body.account);
@@ -61,17 +63,22 @@ export const POST = async (req: Request) => {
       .map((num) => parseInt(num, 10));
     const secretKeyUint8Array = new Uint8Array(secretKeyBytes);
     let mintKeypair = Keypair.fromSecretKey(secretKeyUint8Array);
+    let ata = await getAssociatedTokenAddress(
+      new PublicKey(mintAccount), // mint
+      account, // owner
+      false // allow owner off curve
+    );
     const transaction = new Transaction().add(
-      // SystemProgram.createAccount({
-      //     fromPubkey: account,
-      //     newAccountPubkey: mint,
-      //     space: mintLen,
-      //     lamports,
-      //     programId: TOKEN_2022_PROGRAM_ID,
-      // }),
+      createAssociatedTokenAccountInstruction(
+        account,
+        ata,
+        account,
+        new PublicKey(mintAccount),
+        TOKEN_2022_PROGRAM_ID,
+      ),
       createMintToInstruction(
         new PublicKey(mintAccount),
-        account,
+        ata,
         new PublicKey(mintAuthority),
         10000000000,
         [mintKeypair.publicKey],
