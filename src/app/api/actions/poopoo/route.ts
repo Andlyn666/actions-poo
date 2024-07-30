@@ -78,7 +78,7 @@ export const POST = async (req: Request) => {
       ),
       createMintToInstruction(
         new PublicKey(mintAccount),
-        ata,
+        account,
         new PublicKey(mintAuthority),
         10000000000,
         [mintKeypair.publicKey],
