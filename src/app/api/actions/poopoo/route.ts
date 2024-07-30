@@ -38,9 +38,7 @@ export const OPTIONS = GET;
 
 export const POST = async (req: Request) => {
   try {
-    console.log(1)
     const body: ActionPostRequest = await req.json();
-    console.log(2)
     let account: PublicKey;
     try {
       account = new PublicKey(body.account);
@@ -86,9 +84,6 @@ export const POST = async (req: Request) => {
     // set the end user as the fee payer
     transaction.feePayer = account;
 
-    transaction.recentBlockhash = (
-      await connection.getLatestBlockhash()
-    ).blockhash;
     const payload: ActionPostResponse = await createPostResponse({
         fields: {
           transaction,
@@ -97,7 +92,6 @@ export const POST = async (req: Request) => {
         // no additional signers are required for this transaction
         signers: [mintKeypair],
       });
-      console.log('Response Payload:', payload);
       return Response.json(payload, {
         headers: ACTIONS_CORS_HEADERS,
       });
