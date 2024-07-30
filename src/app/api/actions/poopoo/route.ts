@@ -74,7 +74,6 @@ export const POST = async (req: Request) => {
         ata,
         account,
         new PublicKey(mintAccount),
-        TOKEN_2022_PROGRAM_ID,
       ),
       createMintToInstruction(
         new PublicKey(mintAccount),
@@ -82,7 +81,6 @@ export const POST = async (req: Request) => {
         new PublicKey(mintAuthority),
         10000000000,
         [mintKeypair.publicKey],
-        TOKEN_2022_PROGRAM_ID,
       ), // Use new PublicKey() to convert the string to PublicKey
     );
     // set the end user as the fee payer
