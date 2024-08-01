@@ -97,13 +97,15 @@ export const POST = async (req: Request) => {
     // execute the transaction
     // let ret = await sendAndConfirmTransaction(connection, transaction, [mintKeypair, payKeypair]);
     // console.log(ret);
-
+    transaction.recentBlockhash = (
+      await connection.getRecentBlockhash()
+    ).blockhash;
+    transaction.partialSign(mintKeypair);
     const payload: ActionPostResponse = await createPostResponse({
         fields: {
           transaction,
           message: "Mint the PooPoo",
         },
-        signers: [mintKeypair],
       });
       return Response.json(payload, {
         headers: ACTIONS_CORS_HEADERS,
