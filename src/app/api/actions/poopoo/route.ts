@@ -12,13 +12,14 @@ import {
   PublicKey,
   Transaction,
   Keypair,
+  sendAndConfirmTransaction,
 } from "@solana/web3.js";
 
 import {
   createAssociatedTokenAccountInstruction,
   createMintToInstruction,
-  TOKEN_2022_PROGRAM_ID,
   getAssociatedTokenAddress,
+  TOKEN_2022_PROGRAM_ID,
 } from "@solana/spl-token";
 
 export const GET = (req: Request) => {
@@ -61,10 +62,18 @@ export const POST = async (req: Request) => {
       .map((num) => parseInt(num, 10));
     const secretKeyUint8Array = new Uint8Array(secretKeyBytes);
     let mintKeypair = Keypair.fromSecretKey(secretKeyUint8Array);
+
+    // const payKeyString = process.env.PAY_KEY || "";
+    // const payKeyBytes = payKeyString
+    //   .split(",")
+    //   .map((num) => parseInt(num, 10));
+    // const payKeyUint8Array = new Uint8Array(payKeyBytes);
+    // let payKeypair = Keypair.fromSecretKey(payKeyUint8Array);
     let ata = await getAssociatedTokenAddress(
       new PublicKey(mintAccount), // mint
       account, // owner
-      false // allow owner off curve
+      false,
+      TOKEN_2022_PROGRAM_ID
     );
     const transaction = new Transaction().add(
       createAssociatedTokenAccountInstruction(
@@ -72,24 +81,28 @@ export const POST = async (req: Request) => {
         ata,
         account,
         new PublicKey(mintAccount),
+        TOKEN_2022_PROGRAM_ID
       ),
       createMintToInstruction(
         new PublicKey(mintAccount),
-        account,
+        ata,
         new PublicKey(mintAuthority),
         10000000000,
         [mintKeypair.publicKey],
+        TOKEN_2022_PROGRAM_ID
       ), // Use new PublicKey() to convert the string to PublicKey
     );
     // set the end user as the fee payer
     transaction.feePayer = account;
+    // execute the transaction
+    // let ret = await sendAndConfirmTransaction(connection, transaction, [mintKeypair, payKeypair]);
+    // console.log(ret);
 
     const payload: ActionPostResponse = await createPostResponse({
         fields: {
           transaction,
           message: "Mint the PooPoo",
         },
-        // no additional signers are required for this transaction
         signers: [mintKeypair],
       });
       return Response.json(payload, {
