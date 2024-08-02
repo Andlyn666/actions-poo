@@ -31,7 +31,7 @@ export const GET = (req: Request) => {
     links: {
       actions:[
         {
-          href: `api/actions/poopoo?to={to}`,
+          href: `/api/actions/poopoo?to={to}`,
           label: `Throw shit to `,
           parameters: [
             {
