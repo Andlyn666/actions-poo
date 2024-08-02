@@ -82,12 +82,12 @@ export const POST = async (req: Request) => {
     let mintKeypair = Keypair.fromSecretKey(secretKeyUint8Array);
     let ata = await getAssociatedTokenAddress(
       new PublicKey(mintAccount), // mint
-      to, // owner
+      to,
       false,
       TOKEN_2022_PROGRAM_ID,
     );
     const accountInfo = await connection.getAccountInfo(ata);
-    const transaction = new Transaction();
+    let transaction = new Transaction();
     if (accountInfo == null) {
       transaction.add(
         createAssociatedTokenAccountInstruction(
