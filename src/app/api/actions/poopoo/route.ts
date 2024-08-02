@@ -23,11 +23,27 @@ import {
 } from "@solana/spl-token";
 
 export const GET = (req: Request) => {
+  const accountParameterName = "to";
   const payload: ActionGetResponse = {
     icon: "https://github.com/Andlyn666/solana_coin/blob/main/shit_coin_icon.png?raw=true",
     label: "Mint PooPoo",
     description: "Mint PooPoo to Anyone",
     title: "PooPoo",
+    links: {
+      actions:[
+        {
+          href: `/api/poopoo/&to={to}`,
+          label: `Throw shit to `,
+          parameters: [
+            {
+              name: accountParameterName,
+              label: 'Account for throwing shit',
+              required: true,
+            },
+          ],
+        },
+      ]
+    }
   };
 
   return Response.json(payload, {
@@ -40,9 +56,12 @@ export const OPTIONS = GET;
 export const POST = async (req: Request) => {
   try {
     const body: ActionPostRequest = await req.json();
-    let account: PublicKey;
+    
+    const requestUrl = new URL(req.url);
+    const payer: PublicKey = new PublicKey(body.account)
+    let to: PublicKey;
     try {
-      account = new PublicKey(body.account);
+      to = validatedQueryParams(requestUrl, payer);
     } catch (err) {
       return new Response('Invalid "account" provided', {
         status: 400,
@@ -62,24 +81,17 @@ export const POST = async (req: Request) => {
       .map((num) => parseInt(num, 10));
     const secretKeyUint8Array = new Uint8Array(secretKeyBytes);
     let mintKeypair = Keypair.fromSecretKey(secretKeyUint8Array);
-
-    // const payKeyString = process.env.PAY_KEY || "";
-    // const payKeyBytes = payKeyString
-    //   .split(",")
-    //   .map((num) => parseInt(num, 10));
-    // const payKeyUint8Array = new Uint8Array(payKeyBytes);
-    // let payKeypair = Keypair.fromSecretKey(payKeyUint8Array);
     let ata = await getAssociatedTokenAddress(
       new PublicKey(mintAccount), // mint
-      account, // owner
+      to, // owner
       false,
       TOKEN_2022_PROGRAM_ID
     );
     const transaction = new Transaction().add(
       createAssociatedTokenAccountInstruction(
-        account,
+        payer,
         ata,
-        account,
+        to,
         new PublicKey(mintAccount),
         TOKEN_2022_PROGRAM_ID
       ),
@@ -93,10 +105,7 @@ export const POST = async (req: Request) => {
       ), // Use new PublicKey() to convert the string to PublicKey
     );
     // set the end user as the fee payer
-    transaction.feePayer = account;
-    // execute the transaction
-    // let ret = await sendAndConfirmTransaction(connection, transaction, [mintKeypair, payKeypair]);
-    // console.log(ret);
+    transaction.feePayer = payer;
     transaction.recentBlockhash = (
       await connection.getRecentBlockhash()
     ).blockhash;
@@ -120,3 +129,18 @@ export const POST = async (req: Request) => {
     });
   }
 };
+
+function validatedQueryParams(requestUrl: URL, account: PublicKey) {
+  let toPubkey: PublicKey = account;
+  try {
+    if (requestUrl.searchParams.get("to")) {
+      toPubkey = new PublicKey(requestUrl.searchParams.get("to")!);
+    }
+  } catch (err) {
+    throw "Invalid input query parameter: to";
+  }
+
+  return {
+    toPubkey,
+  };
+}
