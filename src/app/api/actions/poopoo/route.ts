@@ -12,7 +12,6 @@ import {
   PublicKey,
   Transaction,
   Keypair,
-  sendAndConfirmTransaction,
 } from "@solana/web3.js";
 
 import {
@@ -59,7 +58,7 @@ export const POST = async (req: Request) => {
     
     const requestUrl = new URL(req.url);
     const payer: PublicKey = new PublicKey(body.account)
-    let to: PublicKey;
+    let to: PublicKey = payer;
     try {
       to = validatedQueryParams(requestUrl, payer);
     } catch (err) {
@@ -130,17 +129,14 @@ export const POST = async (req: Request) => {
   }
 };
 
-function validatedQueryParams(requestUrl: URL, account: PublicKey) {
-  let toPubkey: PublicKey = account;
+function validatedQueryParams(requestUrl: URL, account: PublicKey):PublicKey {
+  let to: PublicKey = account;
   try {
     if (requestUrl.searchParams.get("to")) {
-      toPubkey = new PublicKey(requestUrl.searchParams.get("to")!);
+      to = new PublicKey(requestUrl.searchParams.get("to")!);
     }
   } catch (err) {
-    throw "Invalid input query parameter: to";
+    console.log("invalid to account");
   }
-
-  return {
-    toPubkey,
-  };
+    return to
 }
