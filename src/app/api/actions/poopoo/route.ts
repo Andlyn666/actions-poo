@@ -26,23 +26,23 @@ export const GET = (req: Request) => {
   const payload: ActionGetResponse = {
     icon: "https://github.com/Andlyn666/solana_coin/blob/main/shit_coin_icon.png?raw=true",
     label: "Mint PooPoo",
-    description: "Mint PooPoo to Anyone",
+    description: "Throw PooPoo to Anyone",
     title: "PooPoo",
     links: {
-      actions:[
+      actions: [
         {
           href: `/api/actions/poopoo?to={to}`,
           label: `Throw shit to `,
           parameters: [
             {
               name: accountParameterName,
-              label: 'Account for throwing shit',
+              label: "Account for throwing shit",
               required: true,
             },
           ],
         },
-      ]
-    }
+      ],
+    },
   };
 
   return Response.json(payload, {
@@ -55,9 +55,9 @@ export const OPTIONS = GET;
 export const POST = async (req: Request) => {
   try {
     const body: ActionPostRequest = await req.json();
-    
+
     const requestUrl = new URL(req.url);
-    const payer: PublicKey = new PublicKey(body.account)
+    const payer: PublicKey = new PublicKey(body.account);
     let to: PublicKey = payer;
     try {
       to = validatedQueryParams(requestUrl, payer);
@@ -84,15 +84,28 @@ export const POST = async (req: Request) => {
       new PublicKey(mintAccount), // mint
       to, // owner
       false,
-      TOKEN_2022_PROGRAM_ID
+      TOKEN_2022_PROGRAM_ID,
     );
-    const transaction = new Transaction().add(
+    const accountInfo = await connection.getAccountInfo(ata);
+    const transaction = new Transaction();
+    if (accountInfo == null) {
+      transaction.add(
+        createAssociatedTokenAccountInstruction(
+          payer,
+          ata,
+          to,
+          new PublicKey(mintAccount),
+          TOKEN_2022_PROGRAM_ID,
+        ),
+      );
+    }
+    transaction.add(
       createAssociatedTokenAccountInstruction(
         payer,
         ata,
         to,
         new PublicKey(mintAccount),
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_2022_PROGRAM_ID,
       ),
       createMintToInstruction(
         new PublicKey(mintAccount),
@@ -100,7 +113,7 @@ export const POST = async (req: Request) => {
         new PublicKey(mintAuthority),
         10000000000,
         [mintKeypair.publicKey],
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_2022_PROGRAM_ID,
       ), // Use new PublicKey() to convert the string to PublicKey
     );
     // set the end user as the fee payer
@@ -109,15 +122,17 @@ export const POST = async (req: Request) => {
       await connection.getRecentBlockhash()
     ).blockhash;
     transaction.partialSign(mintKeypair);
+    // sendAndConfirmTransaction(connection, transaction, s)
     const payload: ActionPostResponse = await createPostResponse({
-        fields: {
-          transaction,
-          message: "Mint the PooPoo",
-        },
-      });
-      return Response.json(payload, {
-        headers: ACTIONS_CORS_HEADERS,
-      });
+      fields: {
+        transaction,
+        message: "Mint the PooPoo",
+      },
+    });
+
+    return Response.json(payload, {
+      headers: ACTIONS_CORS_HEADERS,
+    });
   } catch (err) {
     console.log(err);
     let message = "An unknown error occurred";
@@ -129,7 +144,7 @@ export const POST = async (req: Request) => {
   }
 };
 
-function validatedQueryParams(requestUrl: URL, account: PublicKey):PublicKey {
+function validatedQueryParams(requestUrl: URL, account: PublicKey): PublicKey {
   let to: PublicKey = account;
   try {
     if (requestUrl.searchParams.get("to")) {
@@ -138,5 +153,5 @@ function validatedQueryParams(requestUrl: URL, account: PublicKey):PublicKey {
   } catch (err) {
     console.log("invalid to account");
   }
-    return to
+  return to;
 }
