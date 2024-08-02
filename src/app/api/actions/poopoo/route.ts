@@ -100,13 +100,6 @@ export const POST = async (req: Request) => {
       );
     }
     transaction.add(
-      createAssociatedTokenAccountInstruction(
-        payer,
-        ata,
-        to,
-        new PublicKey(mintAccount),
-        TOKEN_2022_PROGRAM_ID,
-      ),
       createMintToInstruction(
         new PublicKey(mintAccount),
         ata,
