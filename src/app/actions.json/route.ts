@@ -13,6 +13,10 @@ export const GET = async () => {
         pathPattern: "/api/actions/**",
         apiPath: "/api/actions/**",
       },
+      {
+        pathPattern: "/api/actions/poopoo/**",
+        apiPath: "/api/actions/poopoo/**",
+      },
     ],
   };
 
